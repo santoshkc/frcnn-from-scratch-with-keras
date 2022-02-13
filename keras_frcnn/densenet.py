@@ -195,7 +195,7 @@ def nn_base(input_tensor=None,
         else:
             img_input = input_tensor
 
-    if K.image_dim_ordering() == 'tf':
+    if K.image_data_format() == 'tf':
         bn_axis = 3
     else:
         bn_axis = 1

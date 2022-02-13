@@ -202,13 +202,13 @@ for idx, img_name in enumerate(sorted(os.listdir(img_path))):
     # preprocess image
 	X, ratio = format_img(img, C)
 	img_scaled = (np.transpose(X[0,:,:,:],(1,2,0)) + 127.5).astype('uint8')
-	if K.image_dim_ordering() == 'tf':
+	if K.image_data_format() == 'tf':
 		X = np.transpose(X, (0, 2, 3, 1))
 	# get the feature maps and output from the RPN
 	[Y1, Y2, F] = model_rpn.predict(X)
 	
 
-	R = roi_helpers.rpn_to_roi(Y1, Y2, C, K.image_dim_ordering(), overlap_thresh=0.3)
+	R = roi_helpers.rpn_to_roi(Y1, Y2, C, K.image_data_format(), overlap_thresh=0.3)
 	print(R.shape)
     
 	# convert from (x1,y1,x2,y2) to (x,y,w,h)
