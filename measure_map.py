@@ -149,7 +149,7 @@ print(class_mapping)
 class_to_color = {class_mapping[v]: np.random.randint(0, 255, 3) for v in class_mapping}
 C.num_rois = int(options.num_rois)
 
-if K.image_dim_ordering() == 'th':
+if K.image_data_format() == 'th':
 	input_shape_img = (3, None, None)
 	input_shape_features = (1024, None, None)
 else:

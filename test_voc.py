@@ -132,7 +132,7 @@ else:
 	print("backbone is not resnet50. number of features chosen is 512")
 	num_features = 512
 
-if K.image_dim_ordering() == 'th':
+if K.image_data_format() == 'th':
 	input_shape_img = (3, None, None)
 	input_shape_features = (num_features, None, None)
 else:

@@ -182,7 +182,7 @@ def nn_base(input_tensor=None,
                          ' as true, `classes` should be 1000')
 
     # Determine proper input shape
-    if K.image_dim_ordering() == 'th':
+    if K.image_data_format() == 'th':
         input_shape = (3, None, None)
     else:
         input_shape = (None, None, 3)

@@ -9,17 +9,21 @@ import pickle
 import os
 
 from keras import backend as K
-from keras.optimizers import Adam, SGD, RMSprop
-from keras.layers import Input
-from keras.models import Model, load_model
+from tensorflow.keras.optimizers import Adam, SGD, RMSprop
+from tensorflow.keras.layers import Input
+from tensorflow.keras.models import Model, load_model
 from keras_frcnn import config, data_generators
 from keras_frcnn import losses as losses
 import keras_frcnn.roi_helpers as roi_helpers
-from keras.utils import generic_utils
+from tensorflow.keras.utils import Progbar
+
 
 if 'tensorflow' == K.backend():
-    import tensorflow as tf
-from keras.backend.tensorflow_backend import set_session
+	import tensorflow.compat.v1 as tf
+	tf.disable_v2_behavior()
+from tensorflow.compat.v1.keras.backend import set_session
+
+
 config2 = tf.ConfigProto()
 config2.gpu_options.allow_growth = True
 set_session(tf.Session(config=config2))
@@ -141,7 +145,7 @@ print('Num val samples {}'.format(len(val_imgs)))
 data_gen_train = data_generators.get_anchor_gt(train_imgs, classes_count, C, nn.get_img_output_length, K.image_dim_ordering(), mode='train')
 data_gen_val = data_generators.get_anchor_gt(val_imgs, classes_count, C, nn.get_img_output_length,K.image_dim_ordering(), mode='val')
 
-if K.image_dim_ordering() == 'th':
+if K.image_data_format() == 'th':
     input_shape_img = (3, None, None)
 else:
     input_shape_img = (None, None, 3)
@@ -218,7 +222,7 @@ print('Starting training')
 vis = True
 
 for epoch_num in range(num_epochs):
-	progbar = generic_utils.Progbar(epoch_length)
+	progbar = Progbar(epoch_length)
 	print('Epoch {}/{}'.format(epoch_num + 1, num_epochs))
 	
 	# first 3 epoch is warmup
