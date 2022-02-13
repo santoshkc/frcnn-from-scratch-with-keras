@@ -233,11 +233,11 @@ for epoch_num in range(num_epochs):
 	while True:
 		try:
 			if len(rpn_accuracy_rpn_monitor) == epoch_length and C.verbose:
-			    mean_overlapping_bboxes = float(sum(rpn_accuracy_rpn_monitor))/len(rpn_accuracy_rpn_monitor)
-			    rpn_accuracy_rpn_monitor = []
-			    print('Average number of overlapping bounding boxes from RPN = {} for {} previous iterations'.format(mean_overlapping_bboxes, epoch_length))
-			    if mean_overlapping_bboxes == 0:
-			      print('RPN is not producing bounding boxes that overlap the ground truth boxes. Check RPN settings or keep training.')
+				mean_overlapping_bboxes = float(sum(rpn_accuracy_rpn_monitor))/len(rpn_accuracy_rpn_monitor)
+				rpn_accuracy_rpn_monitor = []
+				print('Average number of overlapping bounding boxes from RPN = {} for {} previous iterations'.format(mean_overlapping_bboxes, epoch_length))
+				if mean_overlapping_bboxes == 0:
+					print('RPN is not producing bounding boxes that overlap the ground truth boxes. Check RPN settings or keep training.')
 			X, Y, img_data = next(data_gen_train)
 
 			loss_rpn = model_rpn.train_on_batch(X, Y)
@@ -248,44 +248,44 @@ for epoch_num in range(num_epochs):
 			X2, Y1, Y2, IouS = roi_helpers.calc_iou(R, img_data, C, class_mapping)
 
 			if X2 is None:
-			    rpn_accuracy_rpn_monitor.append(0)
-			    rpn_accuracy_for_epoch.append(0)
-			    continue
+				rpn_accuracy_rpn_monitor.append(0)
+				rpn_accuracy_for_epoch.append(0)
+				continue
 
 			neg_samples = np.where(Y1[0, :, -1] == 1)
 			pos_samples = np.where(Y1[0, :, -1] == 0)
 
 			if len(neg_samples) > 0:
-			    neg_samples = neg_samples[0]
+				neg_samples = neg_samples[0]
 			else:
-			    neg_samples = []
+				neg_samples = []
 
 			if len(pos_samples) > 0:
-			    pos_samples = pos_samples[0]
+				pos_samples = pos_samples[0]
 			else:
-			    pos_samples = []
+				pos_samples = []
 			
 			rpn_accuracy_rpn_monitor.append(len(pos_samples))
 			rpn_accuracy_for_epoch.append((len(pos_samples)))
 
 			if C.num_rois > 1:
-			    if len(pos_samples) < C.num_rois//2:
-                                selected_pos_samples = pos_samples.tolist()
-			    else:
-                                selected_pos_samples = np.random.choice(pos_samples, C.num_rois//2, replace=False).tolist()
-			    try:
-                                selected_neg_samples = np.random.choice(neg_samples, C.num_rois - len(selected_pos_samples), replace=False).tolist()
-			    except:
-                                selected_neg_samples = np.random.choice(neg_samples, C.num_rois - len(selected_pos_samples), replace=True).tolist()
-			    sel_samples = selected_pos_samples + selected_neg_samples
+				if len(pos_samples) < C.num_rois//2:
+					selected_pos_samples = pos_samples.tolist()
+				else:
+					selected_pos_samples = np.random.choice(pos_samples, C.num_rois//2, replace=False).tolist()
+				try:
+					selected_neg_samples = np.random.choice(neg_samples, C.num_rois - len(selected_pos_samples), replace=False).tolist()
+				except:
+					selected_neg_samples = np.random.choice(neg_samples, C.num_rois - len(selected_pos_samples), replace=True).tolist()
+				sel_samples = selected_pos_samples + selected_neg_samples
 			else:
-			    # in the extreme case where num_rois = 1, we pick a random pos or neg sample
-			    selected_pos_samples = pos_samples.tolist()
-			    selected_neg_samples = neg_samples.tolist()
-			    if np.random.randint(0, 2):
-                                sel_samples = random.choice(neg_samples)
-			    else:
-                                sel_samples = random.choice(pos_samples)
+				# in the extreme case where num_rois = 1, we pick a random pos or neg sample
+				selected_pos_samples = pos_samples.tolist()
+				selected_neg_samples = neg_samples.tolist()
+				if np.random.randint(0, 2):
+					sel_samples = random.choice(neg_samples)
+				else:
+					sel_samples = random.choice(pos_samples)
 
 			loss_class = model_classifier.train_on_batch([X, X2[:, sel_samples, :]], [Y1[:, sel_samples, :], Y2[:, sel_samples, :]])
 
