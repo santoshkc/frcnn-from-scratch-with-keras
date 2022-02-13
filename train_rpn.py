@@ -12,19 +12,21 @@ import pickle
 import os
 
 from keras import backend as K
-from keras.optimizers import Adam, SGD, RMSprop
-from keras.layers import Input
-from keras.models import Model
-from keras_frcnn import data_generators
-from keras_frcnn import config
+from tensorflow.keras.optimizers import Adam, SGD, RMSprop
+from tensorflow.keras.layers import Input
+from tensorflow.keras.models import Model, load_model
+from keras_frcnn import config, data_generators
 from keras_frcnn import losses as losses
 import keras_frcnn.roi_helpers as roi_helpers
-from keras.utils import generic_utils
+from tensorflow.keras.utils import Progbar
+
 
 # gpu setting
 if 'tensorflow' == K.backend():
-    import tensorflow as tf
-from keras.backend.tensorflow_backend import set_session
+	import tensorflow.compat.v1 as tf
+	tf.disable_v2_behavior()
+from tensorflow.compat.v1.keras.backend import set_session
+
 config2 = tf.ConfigProto()
 config2.gpu_options.allow_growth = True
 set_session(tf.Session(config=config2))
