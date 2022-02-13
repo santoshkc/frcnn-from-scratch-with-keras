@@ -182,7 +182,7 @@ def nn_base(input_tensor=None,
                          ' as true, `classes` should be 1000')
 
     # Determine proper input shape
-    if K.image_data_format() == 'th':
+    if K.image_data_format() == 'channels_first':
         input_shape = (3, None, None)
     else:
         input_shape = (None, None, 3)
@@ -195,7 +195,7 @@ def nn_base(input_tensor=None,
         else:
             img_input = input_tensor
 
-    if K.image_data_format() == 'tf':
+    if K.image_data_format() == 'channels_last':
         bn_axis = 3
     else:
         bn_axis = 1

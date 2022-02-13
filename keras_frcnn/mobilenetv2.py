@@ -45,7 +45,7 @@ def correct_pad(backend, inputs, kernel_size):
             (correct[1] - adjust[1], correct[1]))
 
 def get_weight_path():
-    if K.image_data_format() == 'th':
+    if K.image_data_format() == 'channels_first':
         print('pretrained weights not available')
         return
     else:
@@ -71,7 +71,7 @@ def nn_base(input_tensor=None, trainable=False):
 
 
     # Determine proper input shape
-    if K.image_data_format() == 'th':
+    if K.image_data_format() == 'channels_first':
         input_shape = (3, None, None)
     else:
         input_shape = (None, None, 3)
@@ -84,7 +84,7 @@ def nn_base(input_tensor=None, trainable=False):
         else:
             img_input = input_tensor
 
-    if K.image_data_format() == 'tf':
+    if K.image_data_format() == 'channels_last':
         bn_axis = 3
     else:
         bn_axis = 1

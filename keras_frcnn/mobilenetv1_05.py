@@ -17,7 +17,7 @@ from keras_frcnn.RoiPoolingConv import RoiPoolingConv
 from keras_frcnn.FixedBatchNormalization import FixedBatchNormalization
 
 def get_weight_path():
-    if K.image_data_format() == 'th':
+    if K.image_data_format() == 'channels_first':
         print('pretrained weights not available for VGG with theano backend')
         return
     else:
@@ -34,7 +34,7 @@ def nn_base(input_tensor=None, trainable=False):
 
 
     # Determine proper input shape
-    if K.image_data_format() == 'th':
+    if K.image_data_format() == 'channels_first':
         input_shape = (3, None, None)
     else:
         input_shape = (None, None, 3)
@@ -47,7 +47,7 @@ def nn_base(input_tensor=None, trainable=False):
         else:
             img_input = input_tensor
 
-    if K.image_data_format() == 'tf':
+    if K.image_data_format() == 'channels_last':
         bn_axis = 3
     else:
         bn_axis = 1
@@ -259,7 +259,7 @@ def identity_block_td(input_tensor, kernel_size, filters, stage, block, trainabl
     # identity block time distributed
 
     nb_filter1, nb_filter2, nb_filter3 = filters
-    if K.image_data_format() == 'tf':
+    if K.image_data_format() == 'channels_last':
         bn_axis = 3
     else:
         bn_axis = 1

@@ -132,7 +132,7 @@ else:
 	print("backbone is not resnet50. number of features chosen is 512")
 	num_features = 512
 
-if K.image_data_format() == 'th':
+if K.image_data_format() == 'channels_first':
 	input_shape_img = (3, None, None)
 	input_shape_features = (num_features, None, None)
 else:
@@ -208,7 +208,7 @@ for idx, img_name in enumerate(sorted(img_pathes)):
 	X, ratio = format_img(img, C)
 	img_scaled = (np.transpose(X[0,:,:,:],(1,2,0)) + 127.5).astype('uint8')
 
-	if K.image_data_format() == 'tf':
+	if K.image_data_format() == 'channels_last':
 		X = np.transpose(X, (0, 2, 3, 1))
 
 	# get the feature maps and output from the RPN
