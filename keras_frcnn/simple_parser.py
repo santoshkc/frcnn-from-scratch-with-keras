@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-def get_data(input_path, cat = None):
+def get_data(input_path, cat = None, is_test_set=False):
 	found_bg = False
 	all_imgs = {}
 
@@ -39,7 +39,10 @@ def get_data(input_path, cat = None):
 				all_imgs[filename]['width'] = cols
 				all_imgs[filename]['height'] = rows
 				all_imgs[filename]['bboxes'] = []
-				if np.random.randint(0,6) > 0:
+
+				if is_test_set == True:
+					all_imgs[filename]['imageset'] = 'test'
+				elif np.random.randint(0,6) > 0:
 					all_imgs[filename]['imageset'] = 'trainval'
 				else:
 					all_imgs[filename]['imageset'] = 'test'

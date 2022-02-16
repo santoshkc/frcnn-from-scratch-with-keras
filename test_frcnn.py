@@ -6,18 +6,33 @@ import sys
 import pickle
 from optparse import OptionParser
 import time
-from keras_frcnn import config
+
+#os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
 from keras import backend as K
-from keras.layers import Input
-from keras.models import Model
-from keras_frcnn import roi_helpers
+from tensorflow.keras.optimizers import Adam, SGD, RMSprop
+from tensorflow.keras.layers import Input
+from tensorflow.keras.models import Model, load_model
+from keras_frcnn import config, data_generators
+from keras_frcnn import losses as losses
+import keras_frcnn.roi_helpers as roi_helpers
+from tensorflow.keras.utils import Progbar
+
+import os
+
+
+if 'tensorflow' == K.backend():
+	import tensorflow.compat.v1 as tf
+	tf.disable_v2_behavior()
+
+from tensorflow.compat.v1.keras.backend import set_session
 from keras.applications.mobilenet import preprocess_input
 
-from tensorflow.compat.v1 import ConfigProto
-from tensorflow.compat.v1 import InteractiveSession
-config = ConfigProto()
+#from tensorflow.compat.v1 import ConfigProto
+#from tensorflow.compat.v1 import InteractiveSession
+config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
-session = InteractiveSession(config=config)
+session = tf.InteractiveSession(config=config)
 
 sys.setrecursionlimit(40000)
 
