@@ -275,7 +275,7 @@ def threadsafe_generator(f):
 		return threadsafe_iter(f(*a, **kw))
 	return g
 
-def get_anchor_gt(all_img_data, class_count, C, img_length_calc_function, backend, mode='train'):
+def get_anchor_gt(all_img_data, class_count, C, img_length_calc_function, backend, mode='train',skip_augumented=False):
 
 	# The following line is not useful with Python 3.5, it is kept for the legacy
 	# all_img_data = sorted(all_img_data)
@@ -335,7 +335,10 @@ def get_anchor_gt(all_img_data, class_count, C, img_length_calc_function, backen
 					y_rpn_cls = np.transpose(y_rpn_cls, (0, 2, 3, 1))
 					y_rpn_regr = np.transpose(y_rpn_regr, (0, 2, 3, 1))
 
-				yield np.copy(x_img), [np.copy(y_rpn_cls), np.copy(y_rpn_regr)], img_data_aug
+				if skip_augumented:
+					yield np.copy(x_img), [np.copy(y_rpn_cls), np.copy(y_rpn_regr)]
+				else:
+					yield np.copy(x_img), [np.copy(y_rpn_cls), np.copy(y_rpn_regr)], img_data_aug
 
 			except Exception as e:
 				print(e)

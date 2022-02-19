@@ -12,6 +12,7 @@ import pickle
 import os
 
 from keras import backend as K
+
 from tensorflow.keras.optimizers import Adam, SGD, RMSprop
 from tensorflow.keras.layers import Input
 from tensorflow.keras.models import Model, load_model
@@ -19,7 +20,6 @@ from keras_frcnn import config, data_generators
 from keras_frcnn import losses as losses
 import keras_frcnn.roi_helpers as roi_helpers
 from tensorflow.keras.utils import Progbar
-
 
 # gpu setting
 if 'tensorflow' == K.backend():
@@ -86,7 +86,7 @@ C.model_path = options.output_weight_path
 C.num_rois = int(options.num_rois)
 
 # we will use resnet. may change to vgg
-if options.network == 'vgg':
+if options.network == 'vgg' or options.network == 'vgg16':
 	C.network = 'vgg16'
 	from keras_frcnn import vgg as nn
 elif options.network == 'resnet50':
@@ -126,7 +126,6 @@ else:
 # place weight files on your directory
 base_net_weights = nn.get_weight_path()
 
-
 #### load images here ####
 # get voc images
 all_imgs, classes_count, class_mapping = get_data(options.train_path)
@@ -164,8 +163,8 @@ print('Num train samples {}'.format(len(train_imgs)))
 print('Num val samples {}'.format(len(val_imgs)))
 
 
-data_gen_train = data_generators.get_anchor_gt(train_imgs, classes_count, C, nn.get_img_output_length, K.image_data_format(), mode='train')
-data_gen_val = data_generators.get_anchor_gt(val_imgs, classes_count, C, nn.get_img_output_length,K.image_data_format(), mode='val')
+data_gen_train = data_generators.get_anchor_gt(train_imgs, classes_count, C, nn.get_img_output_length, K.image_data_format(), mode='train',skip_augumented=True)
+data_gen_val = data_generators.get_anchor_gt(val_imgs, classes_count, C, nn.get_img_output_length,K.image_data_format(), mode='val',skip_augumented=True)
 
 # set input shape
 input_shape_img = (None, None, 3)
@@ -217,18 +216,19 @@ print('Starting training')
 vis = True
 
 
-# start acutual training here
-#X, Y, img_data = next(data_gen_train)
-#
-##loss_rpn = model_rpn.train_on_batch(X, Y)
-#P_rpn = model_rpn.predict_on_batch(X)
+# #start acutual training here
+# X, Y, img_data = next(data_gen_train)
 
-# you should enable NMS when you visualize your results.
-# NMS will filter out redundant predictions rpn gives, and will only leave the "best" predictions.
-# P_rpn = model_rpn.predict_on_batch(image)
+# loss_rpn = model_rpn.train_on_batch(X, Y)
+# P_rpn = model_rpn.predict_on_batch(X)
+
+# #you should enable NMS when you visualize your results.
+# #NMS will filter out redundant predictions rpn gives, and will only leave the "best" predictions.
+# #P_rpn = model_rpn.predict_on_batch(image)
 # R = roi_helpers.rpn_to_roi(P_rpn[0], P_rpn[1], C, K.image_data_format(), use_regr=True, overlap_thresh=0.7, max_boxes=300)
 # X2, Y1, Y2, IouS = roi_helpers.calc_iou(R, img_data, C, class_mapping)
-# this will output the binding box axis. [x1,x2,y1,y2].
+# print(X2,Y1,X2,Y2)
+# #this will output the binding box axis. [x1,x2,y1,y2].
 
 Callbacks=keras.callbacks.ModelCheckpoint("./models/rpn/rpn."+options.network+".weights.{epoch:02d}-{loss:.2f}.hdf5", monitor='loss', verbose=1, save_best_only=True, save_weights_only=True, mode='auto', period=4)
 callback=[Callbacks]
