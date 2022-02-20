@@ -37,6 +37,7 @@ set_session(tf.Session(config=config2))
 # option parsar
 parser = OptionParser()
 parser.add_option("-p", "--path", dest="train_path", help="Path to training data.")
+parser.add_option("-v", "--val-path", dest="validation_path", help="Path to validation data.",default=None)
 parser.add_option("-o", "--parser", dest="parser", help="Parser to use. One of simple or pascal_voc",
 				default="pascal_voc")
 parser.add_option("-n", "--num_rois", type="int", dest="num_rois", help="Number of RoIs to process at once.", default=10)
@@ -130,6 +131,11 @@ base_net_weights = nn.get_weight_path()
 # get voc images
 all_imgs, classes_count, class_mapping = get_data(options.train_path)
 
+
+if options.validation_path is not None:
+	another_data_set, _, _ = get_data(options.validation_path,cat=None,is_test_set=True)
+
+
 print(classes_count)
 
 # add background class as 21st class
@@ -156,8 +162,13 @@ random.shuffle(all_imgs)
 num_imgs = len(all_imgs)
 
 # split to train and val
-train_imgs = [s for s in all_imgs if s['imageset'] == 'trainval']
-val_imgs = [s for s in all_imgs if s['imageset'] == 'test']
+
+if another_data_set is None:
+	train_imgs = [s for s in all_imgs if s['imageset'] == 'trainval']
+	val_imgs = [s for s in all_imgs if s['imageset'] == 'test']
+else:
+	train_imgs = all_imgs
+	val_imgs = another_data_set
 
 print('Num train samples {}'.format(len(train_imgs)))
 print('Num val samples {}'.format(len(val_imgs)))
