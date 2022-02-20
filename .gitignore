@@ -92,3 +92,4 @@ ENV/
 *.h5
 *.hdf5
 samples/
+dump/
