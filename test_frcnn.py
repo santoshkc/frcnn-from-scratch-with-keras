@@ -59,7 +59,7 @@ with open(config_output_filename, 'rb') as f_in:
 	C = pickle.load(f_in)
 
 # we will use resnet. may change to vgg
-if options.network == 'vgg':
+if options.network == 'vgg' or options.network == 'vgg16':
 	C.network = 'vgg16'
 	from keras_frcnn import vgg as nn
 elif options.network == 'resnet50':
