@@ -1,0 +1,1 @@
+python test_frcnn.py --network vgg16 --load .\models\vgg\voc_regress_little.hdf5 --write -n 6 -p "C:\Users\Dev2\Desktop\Jupyter Notebook\PolypsSet\PolypsSet/train2019/image/"

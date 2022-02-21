@@ -139,6 +139,65 @@ def get_real_coordinates(ratio, x1, y1, x2, y2):
 
 	return (real_x1, real_y1, real_x2 ,real_y2)
 
+import pathlib
+
+def replace_last(source_string, replace_what, replace_with):
+    head, _sep, tail = source_string.rpartition(replace_what)
+    return head + replace_with + tail
+
+def derive_annotation_from_image_path(image_path: str):
+	desired_path = pathlib.Path(image_path)
+	name_only = str(desired_path.stem)
+	parent_dir = str(desired_path.parent)
+
+	annotation_dir = replace_last(parent_dir, "image", "annotation")
+	annotation_path = pathlib.WindowsPath(annotation_dir).joinpath(f"{name_only}.xml")
+	return str(annotation_path)
+
+import xml.dom.minidom
+def parse_int(s, base=10, val=None):
+        if s.isdigit():
+            return int(s, base)
+        else:
+            return val
+
+def valid_coordinate(entry: str) -> bool:
+	if entry is None or entry.strip() == '':
+		return -1
+	value = parse_int(entry.strip(),10,val=-1)
+	if value == -1:
+		return -1
+	return value
+
+
+def parse_annotation_file(annotation_file):
+    doc = xml.dom.minidom.parse(annotation_file)
+
+    object_node = doc.getElementsByTagName("object")
+    
+    if len(object_node) == 0 :
+        #print(annotation_file, "empty")
+        pass
+
+    for obj in object_node:
+        nameNode = obj.getElementsByTagName("name")
+        bndBox = obj.getElementsByTagName("bndbox")
+
+        for box in bndBox:
+            xmin = obj.getElementsByTagName("xmin")[0].firstChild.data
+            ymin = obj.getElementsByTagName("ymin")[0].firstChild.data
+            xmax = obj.getElementsByTagName("xmax")[0].firstChild.data
+            ymax = obj.getElementsByTagName("ymax")[0].firstChild.data
+
+            xmin = valid_coordinate(xmin)
+            ymin = valid_coordinate(ymin)
+            xmax = valid_coordinate(xmax)
+            ymax = valid_coordinate(ymax)
+
+            has_boundingbox = xmin != -1 and ymin != -1 and xmax != -1 and ymax != -1 
+
+            return (has_boundingbox, xmin, ymin, xmax, ymax)
+
 class_mapping = C.class_mapping
 
 if 'bg' not in class_mapping:
@@ -205,12 +264,21 @@ visualise = True
 
 num_rois = C.num_rois
 
+box_counter = 0
+
+should_parse_annotation = False
+
 for idx, img_name in enumerate(sorted(os.listdir(img_path))):
 	if not img_name.lower().endswith(('.bmp', '.jpeg', '.jpg', '.png', '.tif', '.tiff')):
 		continue
 	print(img_name)
 	st = time.time()
 	filepath = os.path.join(img_path,img_name)
+
+	input_bbox = None
+	if should_parse_annotation:
+		annotation_file = derive_annotation_from_image_path(filepath)
+		input_bbox = parse_annotation_file(annotation_file)
 
 	img = cv2.imread(filepath)
 
@@ -224,7 +292,7 @@ for idx, img_name in enumerate(sorted(os.listdir(img_path))):
 	
 
 	R = roi_helpers.rpn_to_roi(Y1, Y2, C, K.image_data_format(), overlap_thresh=0.3)
-	print(R.shape)
+	#print(R.shape)
     
 	# convert from (x1,y1,x2,y2) to (x,y,w,h)
 	R[:, 2] -= R[:, 0]
@@ -248,7 +316,7 @@ for idx, img_name in enumerate(sorted(os.listdir(img_path))):
 			ROIs = ROIs_padded
 
 		[P_cls,P_regr] = model_classifier.predict([F, ROIs])
-		print(P_cls)
+		#print(P_cls)
 
 		for ii in range(P_cls.shape[1]):
 
@@ -267,17 +335,24 @@ for idx, img_name in enumerate(sorted(os.listdir(img_path))):
 
 	all_dets = []
 
+	found = False
 	for key in bboxes:
-		print(key)
-		print(len(bboxes[key]))
+		#print(key)
+		#print(len(bboxes[key]))
 		bbox = np.array(bboxes[key])
 
 		new_boxes, new_probs = roi_helpers.non_max_suppression_fast(bbox, np.array(probs[key]), overlap_thresh = 0.3)
 		for jk in range(new_boxes.shape[0]):
+			found=True
 			(x1, y1, x2, y2) = new_boxes[jk,:]
 			(real_x1, real_y1, real_x2, real_y2) = get_real_coordinates(ratio, x1, y1, x2, y2)
 
-			cv2.rectangle(img,(real_x1, real_y1), (real_x2, real_y2), (int(class_to_color[key][0]), int(class_to_color[key][1]), int(class_to_color[key][2])),2)
+			if input_bbox is not None and input_bbox[0] is True:
+				_,xmin,ymin,xmax,ymax = input_bbox
+				cv2.rectangle(img,(xmin, ymin), (xmax, ymax), (0,0,255),3)
+
+			#cv2.rectangle(img,(real_x1, real_y1), (real_x2, real_y2), (int(class_to_color[key][0]), int(class_to_color[key][1]), int(class_to_color[key][2])),1)
+			cv2.rectangle(img,(real_x1, real_y1), (real_x2, real_y2), (0,255,0),2)
 
 			textLabel = '{}: {}'.format(key,int(100*new_probs[jk]))
 			all_dets.append((key,100*new_probs[jk]))
@@ -289,12 +364,14 @@ for idx, img_name in enumerate(sorted(os.listdir(img_path))):
 			cv2.rectangle(img, (textOrg[0] - 5,textOrg[1]+baseLine - 5), (textOrg[0]+retval[0] + 5, textOrg[1]-retval[1] - 5), (255, 255, 255), -1)
 			cv2.putText(img, textLabel, textOrg, cv2.FONT_HERSHEY_DUPLEX, 1, (0, 0, 0), 1)
 
-	print('Elapsed time = {}'.format(time.time() - st))
-	print(all_dets)
-	print(bboxes)
+			box_counter += 1
+
+	print('Elapsed time = {}'.format(time.time() - st),"counter: ", box_counter)
+	#print(all_dets)
+	#print(bboxes)
     # enable if you want to show pics
-	if options.write:
+	if options.write and found:
            import os
            if not os.path.isdir("results"):
               os.mkdir("results")
-           cv2.imwrite('./results/{}.png'.format(idx),img)
+           cv2.imwrite(f'./results/{img_name}_{idx}.png',img)
