@@ -266,7 +266,7 @@ num_rois = C.num_rois
 
 box_counter = 0
 
-should_parse_annotation = False
+should_parse_annotation = True
 
 for idx, img_name in enumerate(sorted(os.listdir(img_path))):
 	if not img_name.lower().endswith(('.bmp', '.jpeg', '.jpg', '.png', '.tif', '.tiff')):

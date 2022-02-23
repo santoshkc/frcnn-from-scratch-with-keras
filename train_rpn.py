@@ -131,7 +131,7 @@ base_net_weights = nn.get_weight_path()
 # get voc images
 all_imgs, classes_count, class_mapping = get_data(options.train_path)
 
-
+another_data_set = None
 if options.validation_path is not None:
 	another_data_set, _, _ = get_data(options.validation_path,cat=None,is_test_set=True)
 
